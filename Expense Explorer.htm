@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Expense Explorer</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html, body {
+    height: 100%;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+  }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #f0f0f0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: auto;
+    animation: bgCycle 16s ease-in-out infinite;
+    transition: color 1s ease;
+  }
+  body::-webkit-scrollbar {
+    display: none;
+  }
+  @keyframes bgCycle {
+    0%, 100% {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #f0f0f0;
+    }
+    25% {
+      background: linear-gradient(135deg, #ff6a00 0%, #ee0979 100%);
+      color: #fff7f0;
+    }
+    50% {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: #e1f7ef;
+    }
+    75% {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: #d7e5fd;
+    }
+  }
+
+  .container {
+    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+    max-width: 540px; /* Increased width */
+    width: 100%;
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 30px 35px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    position: relative;
+    box-sizing: border-box;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .container::-webkit-scrollbar {
+    display: none;
+  }
+  .container {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  header {
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-align: center;
+    color: #f5f5f5;
+    letter-spacing: 2px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.6);
+  }
+
+  /* Form styles */
+  form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 18px;
+    align-items: center;
+    z-index: 1;
+  }
+  form input[type="text"],
+  form input[type="number"],
+  form select,
+  form input[type="date"] {
+    padding: 12px 15px;
+    border-radius: 25px;
+    border: none;
+    font-size: 1rem;
+    background: rgba(255,255,255,0.15);
+    color: #f0f0f0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset;
+    font-weight: 500;
+    transition: background-color 0.4s ease, box-shadow 0.4s ease;
+  }
+  form input[type="text"]:focus,
+  form input[type="number"]:focus,
+  form select:focus,
+  form input[type="date"]:focus {
+    outline: none;
+    background: rgba(255,255,255,0.3);
+    box-shadow: 0 4px 15px rgba(255,255,255,0.6) inset;
+  }
+  form button {
+    grid-column: span 1;
+    padding: 12px 0;
+    border-radius: 25px;
+    border: none;
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.4s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255,74,74,0.7);
+  }
+  form button:hover {
+    background: linear-gradient(45deg, #ff4b2b, #ff416c);
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(255,74,74,0.9);
+  }
+  form button:focus {
+    outline: 3px solid #ff4b2b;
+  }
+
+  /* Filters */
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .filters select,
+  .filters input[type="date"] {
+    padding: 10px 15px;
+    border-radius: 30px;
+    border: none;
+    font-weight: 500;
+    font-size: 1rem;
+    background: rgba(255,255,255,0.15);
+    color: #f0f0f0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25) inset;
+    transition: background-color 0.4s ease, box-shadow 0.4s ease;
+  }
+  .filters select:focus,
+  .filters input[type="date"]:focus {
+    outline: none;
+    background: rgba(255,255,255,0.3);
+    box-shadow: 0 4px 15px rgba(255,255,255,0.6) inset;
+  }
+  #clear-filters {
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    color: #ff6262;
+    font-weight: 900;
+    transition: color 0.4s ease, transform 0.3s ease;
+  }
+  #clear-filters:hover {
+    color: #ff2222;
+    transform: scale(1.2);
+  }
+
+  /* Transactions list */
+  ul#transaction-list {
+    list-style: none;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 10px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.25);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  ul#transaction-list::-webkit-scrollbar {
+    display: none;
+  }
+  ul#transaction-list li {
+    padding: 15px 20px;
+    margin: 8px 16px;
+    border-radius: 25px;
+    background: rgba(255,255,255,0.1);
+    color: #f0f0f0;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+  }
+  ul#transaction-list li:hover,
+  ul#transaction-list li:focus {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 25px rgba(255,74,74,0.5);
+    outline: none;
+    background: rgba(255,255,255,0.2);
+  }
+  ul#transaction-list li.income {
+    border-left: 7px solid #27ae60;
+  }
+  ul#transaction-list li.expense {
+    border-left: 7px solid #ff4b2b;
+  }
+  button.delete-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    color: #ff4b4b;
+    padding: 0 6px;
+    margin-left: 10px;
+    transition: color 0.3s ease;
+    line-height: 1;
+  }
+  button.delete-btn:hover {
+    color: #ff2222;
+  }
+  button.delete-btn[title] {
+    position: relative;
+  }
+  button.delete-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: -30px;
+    right: 50%;
+    transform: translateX(50%);
+    background-color: rgba(0,0,0,0.7);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 1;
+  }
+  button.delete-btn[title]::after {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Summary with wrapping and flexible widths */
+  .summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap; /* allow wrapping on smaller widths */
+  }
+  .summary div {
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    /* Make flexible and min width smaller for wrapping */
+    flex: 1 1 140px;
+    min-width: 140px;
+    padding: 25px 0;
+    text-align: center;
+    border-radius: 40px;
+    box-shadow: 0 15px 50px rgba(255,74,74,0.7);
+    font-weight: 700;
+    cursor: default;
+    user-select: none;
+    transition: box-shadow 0.3s ease;
+  }
+  .summary div:hover {
+    box-shadow: 0 15px 70px rgba(255,74,74,1);
+  }
+  .summary div h3 {
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+  }
+  .summary div span {
+    font-size: 2.4rem;
+    letter-spacing: 1.5px;
+    font-weight: 900;
+    word-wrap: break-word; /* wrap longer numbers */
+  }
+  .summary div.income {
+    box-shadow: 0 15px 50px rgba(39,174,96,0.7);
+    background: rgba(0, 30, 0, 0.5);
+  }
+  .summary div.expenses {
+    box-shadow: 0 15px 50px rgba(255,75,75,0.7);
+    background: rgba(30, 0, 0, 0.5);
+  }
+  .summary div.balance {
+    box-shadow: 0 15px 50px rgba(41, 128, 185, 0.7);
+    background: rgba(0, 0, 30, 0.5);
+  }
+  .summary div.balance.negative {
+    box-shadow: 0 15px 50px rgba(255, 75, 75, 0.9);
+    background: rgba(30,0,0,0.7);
+  }
+
+  /* Chart container */
+  #chart-container {
+    background: rgba(0,0,0,0.35);
+    border-radius: 30px;
+    padding: 20px 25px;
+    box-shadow: 0 20px 60px rgba(255,74,74,0.7);
+    color: #f0f0f0;
+    transition: background 0.5s ease, color 0.5s ease;
+  }
+  #chart-container h3 {
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+    font-size: 1.5rem;
+  }
+  #expenses-chart {
+    max-width: 100% !important;
+    height: 280px !important;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Responsive */
+  @media (max-width: 520px) {
+    body {
+      padding: 15px;
+    }
+    .container {
+      padding: 25px 25px 30px;
+      max-width: 100vw;
+      max-height: 600px;
+    }
+  }
+  @media (max-width: 460px) {
+    .summary {
+      flex-direction: column;
+      gap: 15px;
+    }
+    form {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    .filters {
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    header {
+      font-size: 1.8rem;
+      letter-spacing: 1.5px;
+    }
+    form input[type="text"],
+    form input[type="number"],
+    form select,
+    form input[type="date"],
+    form button,
+    .filters select,
+    .filters input[type="date"] {
+      font-size: 1rem;
+      padding: 10px 15px;
+    }
+  }
+  @media (max-width: 350px) {
+    .container {
+      padding: 15px 15px 20px;
+      max-height: 600px;
+    }
+    header {
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+    }
+    form input[type="text"],
+    form input[type="number"],
+    form select,
+    form input[type="date"],
+    form button,
+    .filters select,
+    .filters input[type="date"] {
+      font-size: 0.9rem;
+      padding: 8px 12px;
+    }
+    #chart-container h3 {
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    #expenses-chart {
+      height: 220px !important;
+    }
+    ul#transaction-list li {
+      font-size: 0.9rem;
+      margin: 6px 12px;
+      padding: 12px 15px;
+    }
+    .summary div span {
+      font-size: 1.6rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Personal Budget Tracker">
+    <header>Expense Explorer</header>
+
+    <form id="transaction-form" aria-label="Add new transaction form" novalidate>
+      <input
+        type="text"
+        id="description"
+        placeholder="Description"
+        aria-label="Transaction description"
+        required
+        autocomplete="off"
+      />
+      <input
+        type="number"
+        id="amount"
+        placeholder="Amount"
+        aria-label="Transaction amount"
+        required
+        step="0.01"
+        min="0.01"
+      />
+      <select id="type" aria-label="Transaction type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+      <select id="category" aria-label="Transaction category">
+        <!-- Populated by JavaScript -->
+      </select>
+      <input
+        type="date"
+        id="date"
+        aria-label="Transaction date"
+        required
+        max=""
+      />
+      <button type="submit" aria-label="Add transaction">Add</button>
+    </form>
+
+    <section class="filters" aria-label="Filter transactions">
+      <select id="filter-type" aria-label="Filter by transaction type">
+        <option value="all" selected>All Types</option>
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+      <select id="filter-category" aria-label="Filter by category">
+        <option value="all" selected>All Categories</option>
+      </select>
+      <input type="date" id="filter-date-start" aria-label="Filter from date" />
+      <input type="date" id="filter-date-end" aria-label="Filter to date" />
+      <button id="clear-filters" aria-label="Clear all filters" title="Clear filters">&#10006;</button>
+    </section>
+
+    <h2>Transaction History</h2>
+    <ul id="transaction-list" tabindex="0" aria-live="polite" aria-relevant="additions removals"></ul>
+
+    <section class="summary" aria-label="Financial summary">
+      <div class="income" role="region" aria-live="polite" aria-atomic="true">
+        <h3>Total Income</h3>
+        <span id="total-income">$0.00</span>
+      </div>
+      <div class="expenses" role="region" aria-live="polite" aria-atomic="true">
+        <h3>Total Expenses</h3>
+        <span id="total-expenses">$0.00</span>
+      </div>
+      <div id="balance" class="balance" role="region" aria-live="polite" aria-atomic="true">
+        <h3>Balance</h3>
+        <span>$0.00</span>
+      </div>
+    </section>
+
+    <section id="chart-container" aria-label="Expenses by category chart" aria-live="polite">
+      <h3>Expenses by Category</h3>
+      <canvas id="expenses-chart" role="img" aria-label="Pie chart showing breakdown of expenses by category"></canvas>
+    </section>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (() => {
+    const body = document.body;
+
+    // Categories for income and expenses
+    const categories = {
+      income: ['Salary', 'Business', 'Investments', 'Gifts', 'Other'],
+      expense: ['Food', 'Rent', 'Utilities', 'Entertainment', 'Travel', 'Health', 'Other']
+    };
+
+    // Elements
+    const transactionForm = document.getElementById('transaction-form');
+    const descriptionInput = document.getElementById('description');
+    const amountInput = document.getElementById('amount');
+    const typeInput = document.getElementById('type');
+    const categorySelect = document.getElementById('category');
+    const dateInput = document.getElementById('date');
+    const transactionList = document.getElementById('transaction-list');
+    const totalIncomeDisplay = document.getElementById('total-income');
+    const totalExpensesDisplay = document.getElementById('total-expenses');
+    const balanceDisplay = document.getElementById('balance');
+    const filterType = document.getElementById('filter-type');
+    const filterCategory = document.getElementById('filter-category');
+    const filterDateStart = document.getElementById('filter-date-start');
+    const filterDateEnd = document.getElementById('filter-date-end');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+    // Chart setup
+    const ctx = document.getElementById('expenses-chart').getContext('2d');
+    let expensesChart;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    dateInput.value = todayStr;
+    dateInput.setAttribute('max', todayStr);
+    filterDateStart.setAttribute('max', todayStr);
+    filterDateEnd.setAttribute('max', todayStr);
+
+    // Helper: Format currency
+    function formatCurrency(num) {
+      return num.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+    }
+
+    // Save transactions to localStorage
+    function saveTransactions() {
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    // Populate categories select based on selected type
+    function populateCategories(type, targetSelect) {
+      targetSelect.innerHTML = '';
+      (categories[type] || []).forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        targetSelect.appendChild(option);
+      });
+    }
+
+    // Populate filter category select with all categories
+    function populateFilterCategories() {
+      filterCategory.innerHTML = '<option value="all" selected>All Categories</option>';
+      const allCats = [...new Set([...categories.income, ...categories.expense])];
+      allCats.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        filterCategory.appendChild(option);
+      });
+    }
+
+    // Delete transaction
+    function deleteTransaction(index) {
+      transactions.splice(index, 1);
+      saveTransactions();
+      renderTransactions();
+      updateSummary();
+      updateChart();
+    }
+
+    // Edit transaction
+    function editTransaction(index) {
+      const tx = transactions[index];
+      if (!tx) return;
+      descriptionInput.value = tx.description;
+      amountInput.value = tx.amount;
+      typeInput.value = tx.type;
+      populateCategories(tx.type, categorySelect);
+      categorySelect.value = tx.category;
+      dateInput.value = tx.date;
+      deleteTransaction(index);
+      descriptionInput.focus();
+    }
+
+    // Create transaction list <li> element with delete and edit
+    function createTransactionElement(tx, index) {
+      const li = document.createElement('li');
+      li.classList.add(tx.type);
+      li.setAttribute('tabindex', '0');
+      li.setAttribute('role', 'button');
+      li.setAttribute('aria-label', `Transaction: ${tx.description}, amount ${formatCurrency(tx.amount)}, category ${tx.category}, date ${tx.date}. Click to edit, delete button to remove.`);
+
+      const dateObj = new Date(tx.date);
+      const dateStr = dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+      li.innerHTML = `
+        <div>
+          <strong>${tx.description}</strong> - ${formatCurrency(tx.amount)} (${tx.category})<br />
+          <small style="opacity:0.7;">${dateStr}</small>
+        </div>
+      `;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.classList.add('delete-btn');
+      deleteBtn.setAttribute('aria-label', `Delete transaction: ${tx.description}`);
+      deleteBtn.setAttribute('title', 'Delete transaction');
+      deleteBtn.innerHTML = '&times;';
+      deleteBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteTransaction(index);
+      });
+
+      li.addEventListener('click', () => editTransaction(index));
+      li.addEventListener('keypress', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          editTransaction(index);
+          e.preventDefault();
+        }
+      })
+
+      li.appendChild(deleteBtn);
+      return li;
+    }
+
+    // Filter transactions based on filters
+    function filterTransactions(allTx) {
+      return allTx.filter(tx => {
+        if (filterType.value !== 'all' && tx.type !== filterType.value) return false;
+        if (filterCategory.value !== 'all' && tx.category !== filterCategory.value) return false;
+        if (filterDateStart.value) {
+          if (new Date(tx.date) < new Date(filterDateStart.value)) return false;
+        }
+        if (filterDateEnd.value) {
+          if (new Date(tx.date) > new Date(filterDateEnd.value)) return false;
+        }
+        return true;
+      });
+    }
+
+    // Render transactions list
+    function renderTransactions() {
+      transactionList.innerHTML = '';
+      const filtered = filterTransactions(transactions);
+      if (filtered.length === 0) {
+        const emptyMsg = document.createElement('li');
+        emptyMsg.textContent = 'No transactions to display.';
+        emptyMsg.style.fontStyle = 'italic';
+        emptyMsg.style.opacity = '0.7';
+        transactionList.appendChild(emptyMsg);
+        return;
+      }
+      filtered.forEach((tx, i) => {
+        const actualIndex = transactions.indexOf(tx);
+        const li = createTransactionElement(tx, actualIndex);
+        transactionList.appendChild(li);
+      });
+    }
+
+    // Update summary totals and balance
+    function updateSummary() {
+      const filtered = filterTransactions(transactions);
+      let totalIncome = 0;
+      let totalExpenses = 0;
+      filtered.forEach(tx => {
+        if (tx.type === 'income') totalIncome += tx.amount;
+        else totalExpenses += tx.amount;
+      });
+      totalIncomeDisplay.textContent = formatCurrency(totalIncome);
+      totalExpensesDisplay.textContent = formatCurrency(totalExpenses);
+      const balance = totalIncome - totalExpenses;
+      balanceDisplay.querySelector('span').textContent = formatCurrency(balance);
+      if (balance < 0) {
+        balanceDisplay.classList.add('negative');
+      } else {
+        balanceDisplay.classList.remove('negative');
+      }
+    }
+
+    // Update ChartJS pie chart of expenses by category
+    function updateChart() {
+      const filtered = filterTransactions(transactions);
+      const expenseTx = filtered.filter(tx => tx.type === 'expense');
+      const sums = {};
+      expenseTx.forEach(tx => {
+        sums[tx.category] = (sums[tx.category] || 0) + tx.amount;
+      });
+      const labels = Object.keys(sums);
+      const data = labels.map(label => sums[label]);
+
+      if (expensesChart) {
+        expensesChart.destroy();
+      }
+      expensesChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: [
+              '#e74c3c',
+              '#c0392b',
+              '#d35400',
+              '#e67e22',
+              '#f39c12',
+              '#f1c40f',
+              '#e67e22',
+              '#d35400',
+              '#c0392b',
+            ],
+            borderColor: '#00000088',
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#f0f0f0',
+                font: { size: 14, weight: 'bold' }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#333',
+              titleColor: '#f0f0f0',
+              bodyColor: '#ddd',
+              callbacks: {
+                label: ctx => `${ctx.label}: ${formatCurrency(ctx.parsed)}`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Clear filters
+    function clearFilters() {
+      filterType.value = 'all';
+      filterCategory.value = 'all';
+      filterDateStart.value = '';
+      filterDateEnd.value = '';
+      renderTransactions();
+      updateSummary();
+      updateChart();
+    }
+
+    // On form submit: Add or edit transaction
+    transactionForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const description = descriptionInput.value.trim();
+      const amount = parseFloat(amountInput.value);
+      const type = typeInput.value;
+      const category = categorySelect.value;
+      const date = dateInput.value;
+
+      if (description === '') {
+        alert('Please enter a description.');
+        descriptionInput.focus();
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount greater than zero.');
+        amountInput.focus();
+        return;
+      }
+      if (!date) {
+        alert('Please select a date for the transaction.');
+        dateInput.focus();
+        return;
+      }
+
+      transactions.push({ description, amount, type, category, date });
+      saveTransactions();
+
+      descriptionInput.value = '';
+      amountInput.value = '';
+      populateCategories(typeInput.value, categorySelect);
+      dateInput.value = new Date().toISOString().split('T')[0];
+      descriptionInput.focus();
+
+      renderTransactions();
+      updateSummary();
+      updateChart();
+    });
+
+    // Update categories when type changes
+    typeInput.addEventListener('change', () => {
+      populateCategories(typeInput.value, categorySelect);
+    });
+
+    // Filter transactions on filter changes
+    [filterType, filterCategory, filterDateStart, filterDateEnd].forEach(el => {
+      el.addEventListener('change', () => {
+        renderTransactions();
+        updateSummary();
+        updateChart();
+      });
+    });
+
+    // Clear filters button
+    clearFiltersBtn.addEventListener('click', () => {
+      clearFilters();
+    });
+
+    // Initialize selects, renders and chart
+    populateCategories(typeInput.value, categorySelect);
+    populateFilterCategories();
+    renderTransactions();
+    updateSummary();
+    updateChart();
+
+    // Auto toggle light/dark mode every 2 seconds by toggling a class on body
+    let darkModeOn = false;
+    setInterval(() => {
+      darkModeOn = !darkModeOn;
+      if (darkModeOn) {
+        body.style.color = '#ffffff';
+      } else {
+        body.style.color = '#2c3e50';
+      }
+    }, 2000);
+  })();
+</script>
+</body>
+</html>
+</content>
+</create_file>
+
+
